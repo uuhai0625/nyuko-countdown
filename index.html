@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同人誌 入稿締切カウントダウン・進捗管理(完全無料)</title>
+<style>
+  :root {
+    --accent: #4d6fa8;
+    --accent-dark: #2f4a7a;
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --border: #dde4f0;
+    --text: #262b33;
+    --muted: #767f8c;
+    --danger: #c94a4a;
+    --warn: #c17a2e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    padding: 28px 20px;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 8px; font-size: 22px; }
+  header p { margin: 0; font-size: 13px; opacity: 0.9; }
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    border-left: 4px solid var(--accent);
+    padding-left: 10px;
+  }
+  .field-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 160px; margin-bottom: 10px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .field input[type="text"], .field input[type="date"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .countdown-box {
+    text-align: center;
+    padding: 20px;
+  }
+  .countdown-box .days {
+    font-size: 56px;
+    font-weight: bold;
+    color: var(--accent-dark);
+    line-height: 1;
+  }
+  .countdown-box .days.warn { color: var(--warn); }
+  .countdown-box .days.danger { color: var(--danger); }
+  .countdown-box .unit { font-size: 16px; color: var(--muted); margin-top: 4px; }
+  .countdown-box .dateLabel { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 10px;
+    background: var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 5px;
+    transition: width 0.2s;
+  }
+  .progress-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .item-row input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+  .item-row input[type="text"] {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 14px;
+    padding: 4px;
+  }
+  .item-row input[type="text"]:focus {
+    outline: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .item-row.checked input[type="text"] {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+  .removeItemBtn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .field textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    min-height: 60px;
+    resize: vertical;
+  }
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn.ghost {
+    background: none;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .btn.small { padding: 6px 12px; font-size: 13px; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .note {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+  }
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 24px 20px 40px;
+  }
+  footer a { color: var(--accent); }
+  @media print {
+    header, .btn-row, .no-print, .removeItemBtn { display: none !important; }
+    body { background: #fff; }
+    .card { border: none; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>同人誌 入稿締切カウントダウン・進捗管理</h1>
+  <p>入稿締切日と作業タスクを入れるだけで、残り日数と進捗を見える化(完全無料・登録不要)</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>① 締切・基本情報</h2>
+    <div class="field-row">
+      <div class="field">
+        <label for="circleName">サークル名・作品名(任意)</label>
+        <input type="text" id="circleName" placeholder="例: つきよみ堂「星屑のレシピ」">
+      </div>
+      <div class="field">
+        <label for="deadline">入稿締切日</label>
+        <input type="date" id="deadline">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 残り日数</h2>
+    <div class="countdown-box">
+      <div class="days" id="daysOut">-</div>
+      <div class="unit" id="unitOut">日を入力してください</div>
+      <div class="dateLabel" id="dateLabelOut"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>③ 進捗</h2>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>④ 作業タスク</h2>
+    <div id="taskRows"></div>
+    <div class="btn-row no-print">
+      <button type="button" class="btn ghost small" id="addTaskBtn">+ タスクを追加</button>
+      <button type="button" class="btn ghost small" id="resetDefaultsBtn">初期タスクに戻す</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⑤ メモ(任意)</h2>
+    <div class="field">
+      <textarea id="memo" aria-label="メモ" placeholder="例: 表紙は〇〇さんに依頼予定、印刷所は△△印刷"></textarea>
+    </div>
+    <div class="note">
+      ※ 締切日は印刷所の入稿締切そのものではなく、余裕を持った「自分用の締切」を設定することをおすすめします。
+      ※ 実際の入稿規定(データ形式・トンボ・解像度等)は各印刷所の案内を必ずご確認ください。
+    </div>
+  </div>
+
+  <div class="btn-row no-print">
+    <button class="btn" id="saveBtn">このブラウザに保存</button>
+    <button class="btn ghost" id="loadBtn">保存データを読み込む</button>
+    <button class="btn ghost" id="printBtn">印刷</button>
+  </div>
+
+</main>
+
+<footer>
+  <p>入力内容は一切外部に送信されません(すべてブラウザ内で完結します)。</p>
+  <p>不具合・ご要望は BOOTHメッセージ、または X(Twitter) <a href="https://x.com/uuhai0625" target="_blank" rel="noopener">@uuhai0625</a> まで。</p>
+</footer>
+
+<script>
+function esc(s) {
+  return (s || "").toString().replace(/[<>&"']/g, function (c) {
+    return { "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+var SAVE_KEY = "nyuko_countdown_v1";
+
+function defaultTasks() {
+  return [
+    "プロット・ネーム",
+    "下書き",
+    "ペン入れ・仕上げ",
+    "表紙デザイン",
+    "入稿データの最終確認(トンボ・サイズ・カラーモード)",
+    "印刷所への入稿",
+    "搬入・発送手配",
+    "見本誌の確認"
+  ].map(function (label) { return { label: label, checked: false }; });
+}
+
+var data = {
+  circleName: "",
+  deadline: "",
+  memo: "",
+  tasks: defaultTasks()
+};
+
+function renderTasks() {
+  var wrap = document.getElementById("taskRows");
+  wrap.innerHTML = "";
+  data.tasks.forEach(function (task, idx) {
+    var row = document.createElement("div");
+    row.className = "item-row" + (task.checked ? " checked" : "");
+    row.innerHTML =
+      '<input type="checkbox" class="taskCheck" data-idx="' + idx + '" aria-label="' + esc(task.label || "タスク") + 'を完了にする" ' + (task.checked ? "checked" : "") + '>' +
+      '<input type="text" class="taskLabel" data-idx="' + idx + '" aria-label="タスク名" value="' + esc(task.label) + '">' +
+      '<button type="button" class="removeItemBtn no-print" data-idx="' + idx + '" aria-label="このタスクを削除">✕</button>';
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll(".taskCheck").forEach(function (el) {
+    el.addEventListener("change", function () {
+      data.tasks[Number(el.dataset.idx)].checked = el.checked;
+      renderTasks();
+      updateProgress();
+    });
+  });
+  wrap.querySelectorAll(".taskLabel").forEach(function (el) {
+    el.addEventListener("input", function () {
+      data.tasks[Number(el.dataset.idx)].label = el.value;
+    });
+  });
+  wrap.querySelectorAll(".removeItemBtn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      data.tasks.splice(Number(btn.dataset.idx), 1);
+      renderTasks();
+      updateProgress();
+    });
+  });
+}
+
+function updateProgress() {
+  var total = data.tasks.length;
+  var checked = data.tasks.filter(function (t) { return t.checked; }).length;
+  var pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressLabel").textContent = checked + " / " + total;
+}
+
+function updateCountdown() {
+  var daysOut = document.getElementById("daysOut");
+  var unitOut = document.getElementById("unitOut");
+  var dateLabelOut = document.getElementById("dateLabelOut");
+
+  if (!data.deadline) {
+    daysOut.textContent = "-";
+    daysOut.className = "days";
+    unitOut.textContent = "締切日を入力してください";
+    dateLabelOut.textContent = "";
+    return;
+  }
+
+  var target = new Date(data.deadline + "T00:00:00");
+  if (isNaN(target.getTime())) {
+    daysOut.textContent = "-";
+    daysOut.className = "days";
+    unitOut.textContent = "日付の形式が正しくありません";
+    dateLabelOut.textContent = "";
+    return;
+  }
+
+  var now = new Date();
+  var todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var diffMs = target.getTime() - todayMidnight.getTime();
+  var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  daysOut.className = "days";
+  if (diffDays < 0) {
+    daysOut.textContent = Math.abs(diffDays);
+    daysOut.classList.add("danger");
+    unitOut.textContent = "日 締切超過";
+  } else if (diffDays === 0) {
+    daysOut.textContent = "0";
+    daysOut.classList.add("danger");
+    unitOut.textContent = "日 本日締切";
+  } else {
+    daysOut.textContent = diffDays;
+    if (diffDays <= 3) daysOut.classList.add("danger");
+    else if (diffDays <= 7) daysOut.classList.add("warn");
+    unitOut.textContent = "日 残っています";
+  }
+
+  var y = target.getFullYear(), m = target.getMonth() + 1, d = target.getDate();
+  dateLabelOut.textContent = y + "年" + m + "月" + d + "日 締切" + (data.circleName ? "(" + data.circleName + ")" : "");
+}
+
+document.getElementById("circleName").addEventListener("input", function (e) { data.circleName = e.target.value; updateCountdown(); });
+document.getElementById("deadline").addEventListener("input", function (e) { data.deadline = e.target.value; updateCountdown(); });
+document.getElementById("memo").addEventListener("input", function (e) { data.memo = e.target.value; });
+
+document.getElementById("addTaskBtn").addEventListener("click", function () {
+  data.tasks.push({ label: "", checked: false });
+  renderTasks();
+  updateProgress();
+});
+
+document.getElementById("resetDefaultsBtn").addEventListener("click", function () {
+  if (!confirm("現在のタスク内容(チェック状態・追加/編集したタスクを含む)をすべて破棄して、初期タスクに戻します。よろしいですか？")) return;
+  data.tasks = defaultTasks();
+  renderTasks();
+  updateProgress();
+});
+
+document.getElementById("saveBtn").addEventListener("click", function () {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    alert("保存しました。");
+  } catch (e) {
+    alert("保存に失敗しました(プライベートモード等ではご利用いただけない場合があります)。");
+  }
+});
+
+document.getElementById("loadBtn").addEventListener("click", function () {
+  var raw;
+  try {
+    raw = localStorage.getItem(SAVE_KEY);
+  } catch (e) {
+    raw = null;
+  }
+  if (!raw) {
+    alert("保存されたデータが見つかりませんでした。");
+    return;
+  }
+  var loaded;
+  try {
+    loaded = JSON.parse(raw);
+  } catch (e) {
+    alert("保存データの形式が正しくないため読み込めませんでした。");
+    return;
+  }
+  if (!loaded || typeof loaded !== "object" || !Array.isArray(loaded.tasks)) {
+    alert("保存データの形式が正しくないため読み込めませんでした。");
+    return;
+  }
+  data.circleName = typeof loaded.circleName === "string" ? loaded.circleName : "";
+  data.deadline = typeof loaded.deadline === "string" ? loaded.deadline : "";
+  data.memo = typeof loaded.memo === "string" ? loaded.memo : "";
+  data.tasks = loaded.tasks.filter(function (t) { return t && typeof t === "object"; }).map(function (t) {
+    return { label: typeof t.label === "string" ? t.label : "", checked: !!t.checked };
+  });
+  if (data.tasks.length === 0) data.tasks = defaultTasks();
+
+  document.getElementById("circleName").value = data.circleName;
+  document.getElementById("deadline").value = data.deadline;
+  document.getElementById("memo").value = data.memo;
+  renderTasks();
+  updateProgress();
+  updateCountdown();
+  alert("読み込みました。");
+});
+
+document.getElementById("printBtn").addEventListener("click", function () {
+  window.print();
+});
+
+renderTasks();
+updateProgress();
+updateCountdown();
+</script>
+
+</body>
+</html>
