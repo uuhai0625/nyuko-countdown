@@ -106,8 +106,8 @@
     border-bottom: 1px solid var(--border);
   }
   .item-row input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     accent-color: var(--accent);
     flex-shrink: 0;
   }
@@ -133,8 +133,8 @@
     cursor: pointer;
     font-size: 15px;
     padding: 8px 10px;
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 44px;
+    min-height: 44px;
   }
   .field textarea {
     width: 100%;
@@ -273,7 +273,7 @@ function defaultTasks() {
     "下書き",
     "ペン入れ・仕上げ",
     "表紙デザイン",
-    "入稿データの最終確認(トンボ・サイズ・カラーモード)",
+    "入稿データの最終確認(トンボ・ノド・裁ち落とし・カラーモード)",
     "印刷所への入稿",
     "搬入・発送手配",
     "見本誌の確認"
@@ -366,9 +366,15 @@ function updateCountdown() {
     unitOut.textContent = "日 本日締切";
   } else {
     daysOut.textContent = diffDays;
-    if (diffDays <= 3) daysOut.classList.add("danger");
-    else if (diffDays <= 7) daysOut.classList.add("warn");
-    unitOut.textContent = "日 残っています";
+    if (diffDays <= 3) {
+      daysOut.classList.add("danger");
+      unitOut.textContent = "日 残っています(締切間近!)";
+    } else if (diffDays <= 7) {
+      daysOut.classList.add("warn");
+      unitOut.textContent = "日 残っています(そろそろ準備を)";
+    } else {
+      unitOut.textContent = "日 残っています";
+    }
   }
 
   var y = target.getFullYear(), m = target.getMonth() + 1, d = target.getDate();
